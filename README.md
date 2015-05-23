@@ -7,12 +7,17 @@ tracing the history of several artworks before they arrived in the MoMA collecti
 
 * Download artwork provenance information from special pages on MoMA.org
 * Structure data in MongoDB
+* Draw random timeline
 
 --> I am here <--
 
 * Parse place notes to get dates
-* Draw timeline
+* Draw logical timeline
 * Find commonalities in location
+
+# What it looks like
+
+<img src="http://i.imgur.com/odg8sQn.png" width="600"/>
 
 # License
 
