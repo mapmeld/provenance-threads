@@ -15,6 +15,11 @@ tracing the history of several artworks before they arrived in the MoMA collecti
 * Draw logical timeline
 * Find commonalities in location
 
+# Components
+
+* D3.js by Mike Bostock
+* <a href="https://github.com/d3/d3-plugins/tree/master/sankey">Sankey plugin</a> for D3
+
 # What it looks like
 
 <img src="http://i.imgur.com/odg8sQn.png" width="600"/>

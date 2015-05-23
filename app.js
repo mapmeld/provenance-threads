@@ -6,6 +6,7 @@ var compression = require('compression');
 var mongoose = require('mongoose');
 
 var Artwork = require('./models/artwork');
+var Place = require('./models/place');
 
 var app = express();
 app.set('views', __dirname + '/views');
@@ -18,16 +19,65 @@ app.use(compression());
 mongoose.connect(process.env.MONGOLAB_URI || process.env.MONGODB_URI || 'localhost');
 
 app.get('/', function(req, res) {
-  Artwork.find({}).exec(function(err, works) {
+  Artwork.find({ start: { $ne: 0 } }).exec(function(err, works) {
     if (err) {
       throw err;
     }
 
-    for (var w = 0; w < works.length; w++) {
-      works[w] = { name: works[w].title };
-    }
+    Place.find({}).sort('title').exec(function(err, years) {
+      if (err) {
+        throw err;
+      }
 
-    res.render('demo', { sData: { nodes: works } });
+      var links = [];
+
+      var stops = [{ title: "Museum of Modern Art" }];
+      for (var y = 0; y < years.length; y++) {
+        stops.push({ title: years[y].title });
+      }
+
+      var loadedWorks = 0;
+      for (var y = 0; y < years.length; y++) {
+        for (var w = 0; w < works.length; w++) {
+          if (works[w].start == years[y].title * 1) {
+            stops.push({ title: works[w].title });
+            links.push({
+              source: w + years.length + 1,
+              target: y + 1,
+              value: 1
+            });
+            loadedWorks++;
+          }
+        }
+        if (y < years.length - 1) {
+          links.push({
+            source: y + 1,
+            target: y + 2,
+            value: loadedWorks
+          });
+        }
+      }
+
+      res.render('demo', { sData: { nodes: stops, links: links } });
+    });
+  });
+});
+
+app.get('/data/art', function(req, res) {
+  Artwork.find({}).exec(function(err, works) {
+    if (err) {
+      throw err;
+    }
+    res.json(works);
+  });
+});
+
+app.get('/data/places', function(req, res) {
+  Place.find({}).exec(function(err, places) {
+    if (err) {
+      throw err;
+    }
+    res.json(places);
   });
 });
 

@@ -3,12 +3,14 @@ var cheerio = require('cheerio');
 var mongoose = require('mongoose');
 
 var Artwork = require('./models/artwork');
-var place = require('./models/place');
 
 var letters = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','R','S','T','U','V','W','X','Z'];
 
 mongoose.connect(process.env.MONGOLAB_URI || process.env.MONGODB_URI || 'localhost');
 
+function findYear(txt) {
+  return txt.match(/18\d\d|19\d\d|20\d\d/);
+}
 
 function processArtistPage($, callback) {
   var artists = $("#list_content h2");
@@ -34,14 +36,14 @@ function processArtistPage($, callback) {
           throw err;
         }
 
-        var search = cheerio.load(body, { normalizeWhitespace: true, decodeEntities: true });
+        var search = cheerio.load(body, { normalizeWhitespace: true, decodeEntities: false });
 
         var title = search('.info.box h3').text();
 
         var artists = [];
         var artistLinks = search('.info.box h4.artist a');
-        for (var a in artistLinks) {
-          artists.push(search(artists[a]).text());
+        for (var a = 0; a < artistLinks.length; a++) {
+          artists.push(search(artistLinks[a]).text());
         }
 
         var places = [];
@@ -56,24 +58,8 @@ function processArtistPage($, callback) {
 
           if (label == "Date:" && val) {
             places.push(val);
-            val = val.replace(/\s/, '');
-            if (!isNaN(val * 1)) {
-              start = val * 1;
-            } else if (val.indexOf("-") > -1) {
-              val = val.split('-')[0];
-              if (!isNaN(val * 1)) {
-                start = val * 1;
-              }
-            } else if (val.indexOf(",") > -1) {
-              val1 = val.split(',')[0];
-              if (!isNaN(val1 * 1)) {
-                start = val1 * 1;
-              } else {
-                val2 = val.split(',')[1];
-                if (!isNaN(val2 * 1)) {
-                  start = val2 * 1;
-                }
-              }
+            if (findYear(val)) {
+              start = findYear(val);
             }
           }
           else if (label == "Medium:") {
@@ -82,6 +68,14 @@ function processArtistPage($, callback) {
         }
 
         var changes = search("#provenance_tabs .content_container .bodytext").html().split("<br>");
+        if (!start) {
+          for (var p = 0; p < changes.length; p++) {
+            if(findYear(val)) {
+              start = findYear(val);
+              break;
+            }
+          }
+        }
         places = places.concat(changes);
 
         var a = new Artwork();

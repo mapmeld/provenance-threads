@@ -17,6 +17,7 @@
   },
   "scripts": {
     "start": "node app.js",
-    "scrape": "node download_pages.js"
+    "scrape": "node download_pages.js",
+    "divide": "node set_years.js"
   }
 }
