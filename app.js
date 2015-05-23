@@ -40,11 +40,11 @@ app.get('/', function(req, res) {
       for (var y = 0; y < years.length; y++) {
         for (var w = 0; w < works.length; w++) {
           if (works[w].start == years[y].title * 1) {
-            stops.push({ title: works[w].title });
+            stops.push({ title: works[w].title, start: works[w].start });
             links.push({
-              source: w + years.length + 1,
+              source: stops.length - 1,
               target: y + 1,
-              value: 1
+              value: 0.9
             });
             loadedWorks++;
           }
@@ -53,10 +53,15 @@ app.get('/', function(req, res) {
           links.push({
             source: y + 1,
             target: y + 2,
-            value: loadedWorks
+            value: loadedWorks,
           });
         }
       }
+      links.push({
+        source: years.length,
+        target: 0,
+        value: loadedWorks,
+      });
 
       res.render('demo', { sData: { nodes: stops, links: links } });
     });

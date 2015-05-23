@@ -9,7 +9,7 @@ var letters = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','
 mongoose.connect(process.env.MONGOLAB_URI || process.env.MONGODB_URI || 'localhost');
 
 function findYear(txt) {
-  return txt.match(/18\d\d|19\d\d|20\d\d/);
+  return txt.match(/18\d\d|19\d\d|20\d\d/) * 1;
 }
 
 function processArtistPage($, callback) {
@@ -67,16 +67,19 @@ function processArtistPage($, callback) {
           }
         }
 
-        var changes = search("#provenance_tabs .content_container .bodytext").html().split("<br>");
-        if (!start) {
-          for (var p = 0; p < changes.length; p++) {
-            if(findYear(val)) {
-              start = findYear(val);
-              break;
+        var changes = search("#provenance_tabs .content_container .bodytext").html()
+        if (changes) {
+          changes = changes.split("<br>");
+          if (!start) {
+            for (var p = 0; p < changes.length; p++) {
+              if(findYear(val)) {
+                start = findYear(val);
+                break;
+              }
             }
           }
+          places = places.concat(changes);  
         }
-        places = places.concat(changes);
 
         var a = new Artwork();
         a.title = title;
@@ -123,7 +126,7 @@ function downloadLetter(l, currentPage) {
       if (currentPage < maxPage) {
         downloadLetter(l, currentPage + 1);
       } else {
-        //downloadLetter(l + 1);
+        downloadLetter(l + 1);
       }
     });
   });

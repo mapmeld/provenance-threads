@@ -1,6 +1,6 @@
 var margin = {top: 1, right: 1, bottom: 6, left: 1},
-    width = 960 - margin.left - margin.right,
-    height = 500 - margin.top - margin.bottom;
+    width = 5800 - margin.left - margin.right,
+    height = 1800 - margin.top - margin.bottom;
 
 var formatNumber = d3.format(",.0f"),
     format = function(d) { return formatNumber(d) + " TWh"; },
@@ -29,19 +29,28 @@ function processData(energy) {
   var link = svg.append("g").selectAll(".link")
       .data(energy.links)
     .enter().append("path")
-      .attr("class", "link")
+      .attr("class", function(d) {
+        if (d.value == 0.9) {
+          return "link book";
+        } else {
+          return "link";
+        }
+      })
       .attr("d", path)
-      .style("stroke-width", function(d) { return Math.max(1, d.dy); })
+      .style("stroke-width", function(d) { return Math.max(1, d.dy / 2); })
       .sort(function(a, b) { return b.dy - a.dy; });
-
-  link.append("title")
-      .text(function(d) { return d.source.title + " → " + d.target.title + "\n" + format(d.value); });
 
   var node = svg.append("g").selectAll(".node")
       .data(energy.nodes)
     .enter().append("g")
       .attr("class", "node")
-      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+      .attr("transform", function(d) {
+        if (d.start) {
+          return "translate(" + (d.x + (d.start - 1887) * 15) + "," + d.y + ")";
+        } else {
+          return "translate(" + d.x + "," + d.y + ")";
+        }
+      })
     .call(d3.behavior.drag()
       .origin(function(d) { return d; })
       .on("dragstart", function() { this.parentNode.appendChild(this); })
@@ -51,9 +60,7 @@ function processData(energy) {
       .attr("height", function(d) { return d.dy; })
       .attr("width", sankey.nodeWidth())
       .style("fill", function(d) { return d.color = color(d.title.replace(/ .*/, "")); })
-      .style("stroke", function(d) { return d3.rgb(d.color).darker(2); })
-    .append("title")
-      .text(function(d) { return d.title + "\n" + format(d.value); });
+      .style("stroke", function(d) { return d3.rgb(d.color).darker(2); });
 
   node.append("text")
       .attr("x", -6)
@@ -61,7 +68,7 @@ function processData(energy) {
       .attr("dy", ".35em")
       .attr("text-anchor", "end")
       .attr("transform", null)
-      .text(function(d) { return d.title; })
+      .html(function(d) { return d.title; })
     .filter(function(d) { return d.x < width / 2; })
       .attr("x", 6 + sankey.nodeWidth())
       .attr("text-anchor", "start");

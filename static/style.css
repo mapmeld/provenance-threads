@@ -20,6 +20,10 @@
   stroke-opacity: .2;
 }
 
+.link.book {
+  stroke: #999;
+}
+
 .link:hover {
   stroke-opacity: .5;
 }
