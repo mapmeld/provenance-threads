@@ -9,6 +9,7 @@ var letters = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','
 mongoose.connect(process.env.MONGOLAB_URI || process.env.MONGODB_URI || 'localhost');
 
 function findYear(txt) {
+  txt = txt.replace(/\((\d+)\)/g, /$1/).replace(/\(\S+\)/g, '')
   return txt.match(/18\d\d|19\d\d|20\d\d/) * 1;
 }
 
@@ -78,7 +79,7 @@ function processArtistPage($, callback) {
               }
             }
           }
-          places = places.concat(changes);  
+          places = places.concat(changes);
         }
 
         var a = new Artwork();

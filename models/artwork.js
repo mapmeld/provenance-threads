@@ -5,7 +5,8 @@ var artworkSchema = mongoose.Schema({
   artists: [String],
   medium: String,
   start: Number,
-  places: [String]
+  places: [String],
+  pts: [[String]]
 });
 
 module.exports = mongoose.model('Artwork', artworkSchema);
