@@ -19,7 +19,7 @@ app.use(compression());
 mongoose.connect(process.env.MONGOLAB_URI || process.env.MONGODB_URI || 'localhost');
 
 app.get('/', function(req, res) {
-  Artwork.find({ start: { $ne: 0 } }).exec(function(err, works) {
+  Artwork.find({ start: { $ne: 0 } }).select('start title pts').sort('start').exec(function(err, works) {
     if (err) {
       throw err;
     }
@@ -29,41 +29,10 @@ app.get('/', function(req, res) {
         throw err;
       }
 
-      var links = [];
-
-      var stops = [{ title: "Museum of Modern Art" }];
-      for (var y = 0; y < years.length; y++) {
-        stops.push({ title: years[y].title });
-      }
-
-      var loadedWorks = 0;
-      for (var y = 0; y < years.length; y++) {
-        for (var w = 0; w < works.length; w++) {
-          if (works[w].start == years[y].title * 1) {
-            stops.push({ title: works[w].title, start: works[w].start });
-            links.push({
-              source: stops.length - 1,
-              target: y + 1,
-              value: 0.9
-            });
-            loadedWorks++;
-          }
-        }
-        if (y < years.length - 1) {
-          links.push({
-            source: y + 1,
-            target: y + 2,
-            value: loadedWorks,
-          });
-        }
-      }
-      links.push({
-        source: years.length,
-        target: 0,
-        value: loadedWorks,
+      res.render('demo', {
+        works: works,
+        years: years
       });
-
-      res.render('demo', { sData: { nodes: stops, links: links } });
     });
   });
 });

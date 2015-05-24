@@ -80,4 +80,92 @@ function processData(energy) {
   }
 };
 
-processData(sData);
+var links = [];
+
+var stops = [{ title: "Present Day" }];
+for (var y = 0; y < years.length; y++) {
+  stops.push({ title: years[y].title });
+}
+
+var loadedWorks = 0;
+var w = 0;
+var yearsByLocation = {};
+
+for (var y = 0; y < years.length; y++) {
+  while (w < works.length && works[w].start <= years[y].title * 1) {
+    if (works[w].start == years[y].title * 1) {
+      stops.push({ title: works[w].title, start: works[w].start });
+      var pts = works[w].pts;
+      for (var p = 0; p < pts.length; p++) {
+        var locale = pts[p].split(',')[1];
+        if (locale) {
+          var year = pts[p].split(',')[0] * 1;
+          if (yearsByLocation[locale]) {
+            if (yearsByLocation[locale][year]) {
+              yearsByLocation[locale][year].push(stops.length - 1);
+            } else {
+              yearsByLocation[locale][year] = [w];
+            }
+          } else {
+            yearsByLocation[locale] = {};
+            yearsByLocation[locale][year] = [w];
+          }
+        }
+      }
+      links.push({
+        source: stops.length - 1,
+        target: y + 1,
+        value: 0.9
+      });
+      loadedWorks++;
+    }
+    w++;
+  }
+  if (y < years.length - 1) {
+    links.push({
+      source: y + 1,
+      target: y + 2,
+      value: loadedWorks,
+    });
+  }
+}
+// add a link from the last year to the present day
+links.push({
+  source: years.length,
+  target: 0,
+  value: loadedWorks,
+});
+
+// ok, that's the major years. Let's also do locales
+var locales = Object.keys(yearsByLocation);
+for (var i = 0; i < locales.length; i++) {
+  var addYears = Object.keys(yearsByLocation[locales[i]]).sort();
+  var currentWorks = 0;
+  var lastLocation;
+  for (var a = 0; a < addYears.length; a++) {
+    stops.push({ title: locales[i] + ", " + addYears[a] });
+
+    // locale history
+    if (currentWorks > 0) {
+      links.push({
+        source: lastLocation,
+        target: stops.length - 1,
+        value: currentWorks
+      });
+    }
+    lastLocation = stops.length - 1;
+
+    // add work links
+    var addWorks = yearsByLocation[locales[i]][addYears[a]];
+    currentWorks += addWorks.length;
+    for (var w = 0; w < addWorks.length; w++) {
+      links.push({
+        source: addWorks[w],
+        target: lastLocation,
+        value: 0.9
+      });
+    }
+  }
+}
+
+processData({ nodes: stops, links: links });
