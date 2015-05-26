@@ -1,6 +1,6 @@
 var margin = {top: 1, right: 1, bottom: 6, left: 1},
-    width = 8000 - margin.left - margin.right,
-    height = 2000 - margin.top - margin.bottom;
+    width = 6000 - margin.left - margin.right,
+    height = 4000 - margin.top - margin.bottom;
 
 var formatNumber = d3.format(",.0f"),
     format = function(d) { return formatNumber(d) + " TWh"; },
@@ -73,7 +73,6 @@ function processData(energy) {
 var links = [];
 var stops = [];
 
-var w = 0;
 var yearlyChangesForLocation = {};
 var stopsByLocale = {};
 
@@ -93,6 +92,8 @@ function initRecord(locale, year) {
   }
 }
 
+var w = 0;
+
 for (var y = 0; y < years.length; y++) {
   while (w < works.length && works[w].start <= years[y].title * 1) {
     if (works[w].start == years[y].title * 1) {
@@ -100,6 +101,7 @@ for (var y = 0; y < years.length; y++) {
       var stopAddition = stops.length - 1;
       var lastLocale = null;
       var pts = works[w].pts;
+      var previousLocales = [];
 
       for (var p = 0; p < pts.length; p++) {
         var locale = pts[p].split(',')[1];
@@ -110,9 +112,10 @@ for (var y = 0; y < years.length; y++) {
           initRecord(locale, year);
           if (lastLocale) {
             initRecord(lastLocale, year);
-
-            // link from an existing state
-            yearlyChangesForLocation[locale][year].add.push(stopsByLocale[year + "," + lastLocale]);
+            if (previousLocales.indexOf(locale) == -1) {
+              // link from an existing state
+              yearlyChangesForLocation[locale][year].add.push(stopsByLocale[year + "," + lastLocale]);
+            }
           } else {
             // tell this location to expect an addition this year
             yearlyChangesForLocation[locale][year].add.push(stopAddition);
@@ -125,6 +128,10 @@ for (var y = 0; y < years.length; y++) {
 
           // save location for next move
           lastLocale = locale;
+          previousLocales.push(locale);
+          if (lastLocale.indexOf("Museum of Modern Art") > -1) {
+            break;
+          }
         }
       }
     }
@@ -142,6 +149,9 @@ for (var i = 0; i < locales.length; i++) {
     // locale history
     if (currentWorks > 0) {
       var toMe = stopsByLocale[changeYears[a] + "," + locales[i]];
+      if (lastLocation == toMe) {
+        continue;
+      }
       links.push({
         source: lastLocation,
         target: toMe,
@@ -156,6 +166,9 @@ for (var i = 0; i < locales.length; i++) {
     var addWorks = yearlyChangesForLocation[locales[i]][changeYears[a]].add;
     currentWorks += addWorks.length;
     for (var w = 0; w < addWorks.length; w++) {
+      if (lastLocation == addWorks[w]) {
+        continue;
+      }
       links.push({
         source: addWorks[w],
         target: lastLocation,

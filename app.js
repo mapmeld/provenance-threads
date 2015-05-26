@@ -19,7 +19,7 @@ app.use(compression());
 mongoose.connect(process.env.MONGOLAB_URI || process.env.MONGODB_URI || 'localhost');
 
 app.get('/', function(req, res) {
-  Artwork.find({ start: { $ne: 0 } }).select('start title pts').sort('start').exec(function(err, works) {
+  Artwork.find({ start: { $ne: 0 } }).select('start title pts').sort('start').limit(410).exec(function(err, works) {
     if (err) {
       throw err;
     }
