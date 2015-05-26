@@ -19,6 +19,10 @@ var sankey = d3.sankey()
 
 var path = sankey.link();
 
+function findYear(txt) {
+  return txt.match(/18\d\d|19\d\d|20\d\d/) * 1;
+}
+
 function processData(energy) {
 
   sankey
@@ -46,7 +50,11 @@ function processData(energy) {
       .attr("class", "node")
       .attr("transform", function(d) {
         if (d.start) {
-          return "translate(" + (d.x + 3 * (d.start - 1887)) + "," + d.y + ")";
+          return "translate(" + (d.x + 20 * (d.start - 1887)) + "," + d.y + ")";
+        } else if (findYear(d.title)) {
+          var adjustX = 45 * (findYear(d.title) - 1887)
+          return "translate(" + adjustX + "," + d.y + ")";
+
         } else {
           return "translate(" + d.x + "," + d.y + ")";
         }
