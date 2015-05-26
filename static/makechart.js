@@ -1,6 +1,6 @@
 var margin = {top: 1, right: 1, bottom: 6, left: 1},
-    width = 5800 - margin.left - margin.right,
-    height = 2500 - margin.top - margin.bottom;
+    width = 8000 - margin.left - margin.right,
+    height = 2000 - margin.top - margin.bottom;
 
 var formatNumber = d3.format(",.0f"),
     format = function(d) { return formatNumber(d) + " TWh"; },
@@ -64,7 +64,7 @@ function processData(energy) {
       .attr("dy", ".35em")
       .attr("text-anchor", "end")
       .attr("transform", null)
-      .html(function(d) { return d.title; })
+      .html(function(d) { return d.title.replace('Museum of Modern Art', 'MoMA'); })
     .filter(function(d) { return d.x < width / 2; })
       .attr("x", 6 + sankey.nodeWidth())
       .attr("text-anchor", "start");
