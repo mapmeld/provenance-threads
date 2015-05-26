@@ -54,7 +54,7 @@ d3.sankey = function() {
     var curvature = .5;
 
     function link(d) {
-      var x0 = d.source.x + d.source.dx + 15 * ((d.source.start || 1887) - 1887),
+      var x0 = d.source.x + d.source.dx + 3 * ((d.source.start || 1887) - 1887),
           x1 = d.target.x,
           xi = d3.interpolateNumber(x0, x1),
           x2 = xi(curvature),

@@ -1,6 +1,6 @@
 var margin = {top: 1, right: 1, bottom: 6, left: 1},
     width = 5800 - margin.left - margin.right,
-    height = 1800 - margin.top - margin.bottom;
+    height = 2500 - margin.top - margin.bottom;
 
 var formatNumber = d3.format(",.0f"),
     format = function(d) { return formatNumber(d) + " TWh"; },
@@ -46,15 +46,11 @@ function processData(energy) {
       .attr("class", "node")
       .attr("transform", function(d) {
         if (d.start) {
-          return "translate(" + (d.x + (d.start - 1887) * 15) + "," + d.y + ")";
+          return "translate(" + (d.x + 3 * (d.start - 1887)) + "," + d.y + ")";
         } else {
           return "translate(" + d.x + "," + d.y + ")";
         }
-      })
-    .call(d3.behavior.drag()
-      .origin(function(d) { return d; })
-      .on("dragstart", function() { this.parentNode.appendChild(this); })
-      .on("drag", dragmove));
+      });
 
   node.append("rect")
       .attr("height", function(d) { return d.dy; })
@@ -72,91 +68,92 @@ function processData(energy) {
     .filter(function(d) { return d.x < width / 2; })
       .attr("x", 6 + sankey.nodeWidth())
       .attr("text-anchor", "start");
-
-  function dragmove(d) {
-    d3.select(this).attr("transform", "translate(" + d.x + "," + (d.y = Math.max(0, Math.min(height - d.dy, d3.event.y))) + ")");
-    sankey.relayout();
-    link.attr("d", path);
-  }
 };
 
 var links = [];
+var stops = [];
 
-var stops = [{ title: "Present Day" }];
-for (var y = 0; y < years.length; y++) {
-  stops.push({ title: years[y].title });
-}
-
-var loadedWorks = 0;
 var w = 0;
-var yearsByLocation = {};
+var yearlyChangesForLocation = {};
+var stopsByLocale = {};
+
+function initRecord(locale, year) {
+  if (!yearlyChangesForLocation[locale]) {
+    yearlyChangesForLocation[locale] = {};
+  }
+  if (!yearlyChangesForLocation[locale][year]) {
+    yearlyChangesForLocation[locale][year] = {
+      add: [],
+      remove: []
+    };
+  }
+  if (!stopsByLocale[year + "," + locale]) {
+    stops.push({ title: locale + ", " + year });
+    stopsByLocale[year + "," + locale] = stops.length - 1;
+  }
+}
 
 for (var y = 0; y < years.length; y++) {
   while (w < works.length && works[w].start <= years[y].title * 1) {
     if (works[w].start == years[y].title * 1) {
       stops.push({ title: works[w].title, start: works[w].start });
+      var stopAddition = stops.length - 1;
+      var lastLocale = null;
       var pts = works[w].pts;
+
       for (var p = 0; p < pts.length; p++) {
         var locale = pts[p].split(',')[1];
-        if (locale) {
+        if (locale && locale != lastLocale) {
           var year = pts[p].split(',')[0] * 1;
-          if (yearsByLocation[locale]) {
-            if (yearsByLocation[locale][year]) {
-              yearsByLocation[locale][year].push(stops.length - 1);
-            } else {
-              yearsByLocation[locale][year] = [w];
-            }
+
+          // make sure a record exists of these locations and years
+          initRecord(locale, year);
+          if (lastLocale) {
+            initRecord(lastLocale, year);
+
+            // link from an existing state
+            yearlyChangesForLocation[locale][year].add.push(stopsByLocale[year + "," + lastLocale]);
           } else {
-            yearsByLocation[locale] = {};
-            yearsByLocation[locale][year] = [w];
+            // tell this location to expect an addition this year
+            yearlyChangesForLocation[locale][year].add.push(stopAddition);
           }
+
+          // tell last location to expect a removal this year
+          if (lastLocale) {
+            yearlyChangesForLocation[lastLocale][year].remove.push(stopsByLocale[pts[p]]);
+          }
+
+          // save location for next move
+          lastLocale = locale;
         }
       }
-      links.push({
-        source: stops.length - 1,
-        target: y + 1,
-        value: 0.9
-      });
-      loadedWorks++;
     }
     w++;
   }
-  if (y < years.length - 1) {
-    links.push({
-      source: y + 1,
-      target: y + 2,
-      value: loadedWorks,
-    });
-  }
 }
-// add a link from the last year to the present day
-links.push({
-  source: years.length,
-  target: 0,
-  value: loadedWorks,
-});
 
 // ok, that's the major years. Let's also do locales
-var locales = Object.keys(yearsByLocation);
+var locales = Object.keys(yearlyChangesForLocation);
 for (var i = 0; i < locales.length; i++) {
-  var addYears = Object.keys(yearsByLocation[locales[i]]).sort();
+  var changeYears = Object.keys(yearlyChangesForLocation[locales[i]]).sort();
   var currentWorks = 0;
   var lastLocation;
-  for (var a = 0; a < addYears.length; a++) {
-    stops.push({ title: locales[i] + ", " + addYears[a] });
-
+  for (var a = 0; a < changeYears.length; a++) {
     // locale history
     if (currentWorks > 0) {
+      var toMe = stopsByLocale[changeYears[a] + "," + locales[i]];
       links.push({
         source: lastLocation,
-        target: stops.length - 1,
+        target: toMe,
         value: currentWorks
       });
     }
-    lastLocation = stops.length - 1;
+
+    // update node cursor of this location through time
+    lastLocation = stopsByLocale[changeYears[a] + "," + locales[i]];
 
     // add work links
-    var addWorks = yearsByLocation[locales[i]][addYears[a]];
+    var addWorks = yearlyChangesForLocation[locales[i]][changeYears[a]].add;
     currentWorks += addWorks.length;
     for (var w = 0; w < addWorks.length; w++) {
       links.push({
@@ -165,6 +162,9 @@ for (var i = 0; i < locales.length; i++) {
         value: 0.9
       });
     }
+
+    var removeWorks = yearlyChangesForLocation[locales[i]][changeYears[a]].remove;
+    currentWorks -= removeWorks.length;
   }
 }
 
