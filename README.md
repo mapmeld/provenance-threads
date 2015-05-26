@@ -19,7 +19,9 @@ tracing the history of several artworks before they arrived in the MoMA collecti
 
 # What it looks like
 
-<img src="http://i.imgur.com/Exh6tQM.png" width="600"/>
+<a href="http://i.imgur.com/FsXW9hz.jpg">
+<img src="http://i.imgur.com/FsXW9hz.jpg" width="800"/>
+</a>
 
 # License
 
