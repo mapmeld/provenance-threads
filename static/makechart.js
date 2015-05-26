@@ -34,11 +34,20 @@ function processData(energy) {
       .data(energy.links)
     .enter().append("path")
       .attr("class", function(d) {
+        var classes = "link"
         if (d.value == 0.9) {
-          return "link book";
-        } else {
-          return "link";
+          classes += " book";
         }
+        if (d.source.title.indexOf("Paris") > -1 && d.target.title.indexOf("Paris") > -1) {
+          classes += " green";
+        }
+        if (d.source.title.indexOf("Museum") > -1 && d.target.title.indexOf("Museum") > -1) {
+          classes += " orange";
+        }
+        if (d.source.title.indexOf("New York") > -1 && d.target.title.indexOf("New York") > -1) {
+          classes += " red";
+        }
+        return classes;
       })
       .attr("d", path)
       .style("stroke-width", function(d) { return Math.max(1, d.dy / 2); })
@@ -54,7 +63,6 @@ function processData(energy) {
         } else if (findYear(d.title)) {
           var adjustX = 45 * (findYear(d.title) - 1887)
           return "translate(" + adjustX + "," + (d.y + d.dy * 0.2) + ")";
-
         } else {
           return "translate(" + d.x + "," + (d.y + d.dy * 0.2) + ")";
         }
