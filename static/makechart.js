@@ -53,15 +53,15 @@ function processData(energy) {
           return "translate(" + (d.x + 20 * (d.start - 1887)) + "," + d.y + ")";
         } else if (findYear(d.title)) {
           var adjustX = 45 * (findYear(d.title) - 1887)
-          return "translate(" + adjustX + "," + d.y + ")";
+          return "translate(" + adjustX + "," + (d.y + d.dy * 0.2) + ")";
 
         } else {
-          return "translate(" + d.x + "," + d.y + ")";
+          return "translate(" + d.x + "," + (d.y + d.dy * 0.2) + ")";
         }
       });
 
   node.append("rect")
-      .attr("height", function(d) { return d.dy; })
+      .attr("height", function(d) { return d.dy * 0.6; })
       .attr("width", sankey.nodeWidth())
       .style("fill", function(d) { return d.color = color(d.title.replace(/ .*/, "")); })
       .style("stroke", function(d) { return d3.rgb(d.color).darker(2); });
