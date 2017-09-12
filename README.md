@@ -1,5 +1,7 @@
 # Provenance-Threads
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/mapmeld/provenance-threads.svg)](https://greenkeeper.io/)
+
 Inspired by XKCD's storyline plots of Lord of the Rings, Jurassic Park, and Primer, I'm excited to try out a new art project:
 tracing the history of several artworks before they arrived in the MoMA collection.
 
